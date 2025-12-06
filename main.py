@@ -1,8 +1,14 @@
 from fastapi import FastAPI
-from app.routers.documents_router import router as documents_router
+from routers import document_router
+from db.database import engine, Base
 
-app = FastAPI(title="AI Document Analyzer")
+# Create tables
+Base.metadata.create_all(bind=engine)
 
-app.include_router(documents_router, prefix="/documents", tags=["Documents"])
+app = FastAPI(title="Document Analyzer")
 
+app.include_router(document_router.router, prefix="/documents", tags=["documents"])
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to Document Analyzer API"}
