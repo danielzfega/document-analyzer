@@ -1,10 +1,18 @@
-from fastapi import APIRouter, UploadFile, HTTPException
-from app.services.document_service import handle_upload
-from app.services.analysis_service import analyze_document
-from app.database.session import db
-from app.database.models.document import Document
+from fastapi import APIRouter, UploadFile, HTTPException, Depends
+from sqlalchemy.orm import Session
+from services.document_service import handle_upload
+from services.analysis_service import analyze_document
+from db.database import SessionLocal
+from models.document import Document
 
 router = APIRouter()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.post("/upload")
 async def upload_document(file: UploadFile):
@@ -14,15 +22,28 @@ async def upload_document(file: UploadFile):
 
 @router.post("/{id}/analyze")
 async def analyze_doc(id: str):
-    result = await analyze_document(id)
+    # Ensure ID is integer if DB uses integer PK, or handle str/int conversion
+    # The Document model uses Integer PK. But the router takes 'id: str'.
+    # We should convert.
+    try:
+        doc_id = int(id)
+    except ValueError:
+         raise HTTPException(status_code=400, detail="Invalid ID format, must be integer")
+
+    result = await analyze_document(doc_id)
     if not result:
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise HTTPException(status_code=404, detail="Document not found or analysis failed")
     return {"message": "Analysis complete"}
 
 
 @router.get("/{id}")
-async def get_doc(id: str):
-    doc = db.query(Document).filter_by(id=id).first()
+async def get_doc(id: str, db: Session = Depends(get_db)):
+    try:
+        doc_id = int(id)
+    except ValueError:
+         raise HTTPException(status_code=400, detail="Invalid ID format, must be integer")
+
+    doc = db.query(Document).filter(Document.id == doc_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Not Found")
     
@@ -32,11 +53,11 @@ async def get_doc(id: str):
         "text": doc.text
     }
 
-    if doc.analysis:
-        response.update({
-            "summary": doc.analysis.summary,
-            "detected_type": doc.analysis.detected_type,
-            "attributes": doc.analysis.attributes
+    if doc.summary or doc.detected_type or doc.attributes:
+         response.update({
+            "summary": doc.summary,
+            "detected_type": doc.detected_type,
+            "attributes": doc.attributes
         })
 
     return response

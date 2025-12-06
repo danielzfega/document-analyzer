@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+python-dotenv
+boto3
+pdfplumber
+python-docx
+requests
+pydantic-settings
+python-multipart
+psycopg[binary]
+# For file upload
