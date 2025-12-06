@@ -15,7 +15,7 @@ An intelligent document processing service that extracts text from PDF and DOCX 
 
 ## Tech Stack
 
-- **Backend**: Python 3.9+, FastAPI
+- **Backend**: FastAPI
 - **Database**: PostgreSQL
 - **Storage**: Minio (S3 Compatible)
 - **AI/LLM**: OpenRouter (GPT-4o-mini or compatible)
@@ -33,7 +33,7 @@ An intelligent document processing service that extracts text from PDF and DOCX 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/danielzfega/document-analyzer
    cd document-analyzer
    ```
 
