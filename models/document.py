@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
 from datetime import datetime
 from db.database import Base
@@ -5,7 +6,7 @@ from db.database import Base
 class Document(Base):
     __tablename__ = "documents"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     file_name = Column(String, index=True)
     s3_key = Column(String)
     text = Column(Text, nullable=True)

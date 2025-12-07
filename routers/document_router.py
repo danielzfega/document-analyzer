@@ -22,28 +22,18 @@ async def upload_document(file: UploadFile):
 
 @router.post("/{id}/analyze")
 async def analyze_doc(id: str):
-    # Ensure ID is integer if DB uses integer PK, or handle str/int conversion
-    # The Document model uses Integer PK. But the router takes 'id: str'.
-    # We should convert.
-    try:
-        doc_id = int(id)
-    except ValueError:
-         raise HTTPException(status_code=400, detail="Invalid ID format, must be integer")
-
-    result = await analyze_document(doc_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="Document not found or analysis failed")
+    # ID is now a UUID string, no integer conversion needed.
+    # Service now raises HTTPExceptions for errors (404, 400, 500, 502)
+    # We just await the result.
+    await analyze_document(id)
+    
     return {"message": "Analysis complete"}
 
 
 @router.get("/{id}")
 async def get_doc(id: str, db: Session = Depends(get_db)):
-    try:
-        doc_id = int(id)
-    except ValueError:
-         raise HTTPException(status_code=400, detail="Invalid ID format, must be integer")
-
-    doc = db.query(Document).filter(Document.id == doc_id).first()
+    # ID is now a UUID string
+    doc = db.query(Document).filter(Document.id == id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Not Found")
     
